@@ -19,10 +19,15 @@ namespace com.spectre7.Engine.Events
         public event NotificationOnlyEvent PlayerStoppedRunning;
         public event Vector2Event MoveInputFound;
         public event NotificationOnlyEvent MoveInputLost;
-        public event NotificationOnlyEvent PlayerJumpInputFound;
+        public event NotificationOnlyEvent JumpInputFound;
         public event NotificationOnlyEvent PlayerJumpInputLost;
         public event NotificationOnlyEvent PlayerStartedJumpingAnimation;
         public event NotificationOnlyEvent PlayerStartedJumpLandAnimation;
+        public event NotificationOnlyEvent CrouchInputFound;
+        public event NotificationOnlyEvent AnimatorStartedCrouching;
+        public event NotificationOnlyEvent AnimatorStoppedCrouching;
+
+
 
 
         public void FireStartedRunningEvent()
@@ -42,7 +47,7 @@ namespace com.spectre7.Engine.Events
         
         public void FirePlayerJumpInputFoundEvent()
         {
-            PlayerJumpInputFound?.Invoke();
+            JumpInputFound?.Invoke();
         }
         
         public void FirePlayerJumpInputLostEvent()
@@ -63,7 +68,22 @@ namespace com.spectre7.Engine.Events
         {
             PlayerStoppedRunning?.Invoke();
         }
+
+
+        public void FireCrouchInputFoundEvent()
+        {
+            CrouchInputFound?.Invoke();
+        }
         
         
+        public void FireCrouchAnimationStartedEvent()
+        {
+            AnimatorStartedCrouching?.Invoke();
+        }
+        
+        public void FireCrouchAnimationEndedEvent()
+        {
+            AnimatorStoppedCrouching?.Invoke();
+        }
     }
 }

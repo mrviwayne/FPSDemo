@@ -40,6 +40,11 @@ namespace com.spectre7.Engine.Input
         {
             switch (context.action.name)
             {
+                case Crouch:
+                {
+                    _eventMgr.FireCrouchInputFoundEvent();
+                    break;
+                }
                 case Jump:
                 {
                     _eventMgr.FirePlayerJumpInputFoundEvent();
@@ -102,6 +107,7 @@ namespace com.spectre7.Engine.Input
         private const string Move = "Move";
         private const string Jump = "Jump";
         private const string Shoot = "Shoot";
+        private const string Crouch = "Crouch";
 
         #endregion
 

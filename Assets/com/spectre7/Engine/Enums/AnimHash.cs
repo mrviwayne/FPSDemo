@@ -40,6 +40,7 @@ namespace com.spectre7.Engine.Enums
         public class Parameter
         {
             public static readonly int AnimChain = Animator.StringToHash("Anim Chain");
+            public static readonly int IsCrouching = Animator.StringToHash("IsCrouching");
             public static readonly int SpecialMoveBuffer = Animator.StringToHash("Special Move Buffer");
             public static readonly int Continue = Animator.StringToHash("Continue");
             public static readonly int PivotAngle = Animator.StringToHash("Pivot Angle");

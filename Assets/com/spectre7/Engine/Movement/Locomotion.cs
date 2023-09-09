@@ -8,34 +8,46 @@ namespace com.spectre7.Engine.Movement
     public class Locomotion : MonoBehaviour
     {
         private HEventMgr _hEventMgr;
-
-        private bool _isRunning;
-        private bool _isJumping;
-        
-        public bool isGrounded; 
-        
         private Animator _anim;
-        
-        private Vector2 _movement;
-
         private CharacterController _skin;
+
+        private bool _isRunning, _isJumping, _crouchKeyHeld;
+
+        private Vector2 _movement;
+        private float _oldBlendValue;
+        private float _animStartTime;
+        
+        [SerializeField]
+        [Range(0.1f,1f)]
+        private float AnimBlendDuration = 0.5f;
+
+        private float AnimationBlendStep => (Time.time - _animStartTime) / AnimBlendDuration;
 
         [SerializeField]
         [Range(1f,10f)]
         private float playerSpeed;
+
+        [SerializeField]
+        [Range(0.1f,1f)]
+        private float crouchSpeed;
         
         [SerializeField]
         private float jumpHeight;
+        
+        private float CrouchModifier => _crouchKeyHeld ? 1 : crouchSpeed;
+        
+        
             
         // Start is called before the first frame update
         void Start()
         {
             _hEventMgr = GetComponent<HEventMgr>();
-            _hEventMgr.PlayerStartedJumpingAnimation += onPlayerJumpAnimStart;
-            _hEventMgr.PlayerJumpInputFound += OnPlayerJumpInputFound;
-            _hEventMgr.PlayerStartedJumpLandAnimation += onPlayerJumpAnimStop;
-            _hEventMgr.PlayerStartedRunning += OnPlayerRunAnimationStart;
-            _hEventMgr.PlayerStoppedRunning += OnPlayerRunAnimationStop;
+            _hEventMgr.CrouchInputFound += OnCrouchInputFound;
+            _hEventMgr.PlayerStartedJumpingAnimation += OnPlayerJumpAnimStart;
+            _hEventMgr.JumpInputFound += OnJumpInputFound;
+            _hEventMgr.PlayerStartedJumpLandAnimation += OnPlayerJumpAnimStop;
+            _hEventMgr.PlayerStartedRunning += () => _isRunning = true;
+            _hEventMgr.PlayerStoppedRunning += () => _isRunning = false;
             _hEventMgr.MoveInputFound += OnMoveInputFound;
             _hEventMgr.MoveInputLost += OnMoveInputLost;
             _anim = GetComponent<Animator>();
@@ -44,18 +56,24 @@ namespace com.spectre7.Engine.Movement
 
         private void FixedUpdate()
         {
-            isGrounded = _skin.isGrounded;
             Vector3 moveValue = Vector3.zero;
+            if (!_crouchKeyHeld)
+            {
+                _anim.SetFloat(AnimHash.Parameter.IsCrouching, -Mathf.SmoothStep(-_oldBlendValue, 0, AnimationBlendStep));
+            }
+            else
+            {
+                _anim.SetFloat(AnimHash.Parameter.IsCrouching, Mathf.SmoothStep(_oldBlendValue, 1, AnimationBlendStep));
+            }
             if (_isRunning)
             {
                 moveValue.x = _movement.x;
                 moveValue.z = _movement.y;
-                moveValue *= (Time.fixedDeltaTime * playerSpeed);
+                moveValue *= (Time.fixedDeltaTime * playerSpeed * CrouchModifier);
             }
             if (_isJumping)
             {
                 moveValue.y = _anim.GetFloat(AnimHash.Parameter.AnimCurveY) *  jumpHeight *Time.fixedDeltaTime;
-            Debug.Log("Jumped!");
             }
 
             _skin.Move(moveValue);
@@ -69,27 +87,22 @@ namespace com.spectre7.Engine.Movement
             _movement = move;
         }
 
-        void OnPlayerJumpInputFound()
+        void OnJumpInputFound()
         {
             if (_skin.isGrounded)
             {
-                Debug.Log("Grounded and set.");
                 _anim.SetInteger(AnimHash.Parameter.AnimChain, (int)AnimChain.Jumping);
-            }
-            else
-            {
-                Debug.Log("Wasn't grounded!");
             }
         }
 
-        void onPlayerJumpAnimStart()
+        void OnPlayerJumpAnimStart()
         {
             Debug.Log("SEt to jump");
             _anim.SetInteger(AnimHash.Parameter.AnimChain, (int)AnimChain.Idling);
             _isJumping = true;
         }
 
-        void onPlayerJumpAnimStop()
+        void OnPlayerJumpAnimStop()
         {
             _isJumping = false;
         }
@@ -100,20 +113,16 @@ namespace com.spectre7.Engine.Movement
             //_movement = Vector2.zero;
         }
 
-        void OnPlayerRunAnimationStart()
+        void OnCrouchInputFound()
         {
-            _isRunning = true;
+            _crouchKeyHeld = !_crouchKeyHeld;
+            _oldBlendValue = _anim.GetFloat(AnimHash.Parameter.IsCrouching);
+            _animStartTime = Time.time;
         }
         
-        void OnPlayerRunAnimationStop()
-        {
-            _isRunning = false;
-        }
-
         private void OnDestroy()
         {
-            _hEventMgr.PlayerStartedRunning -= OnPlayerRunAnimationStart;
-            _hEventMgr.PlayerStoppedRunning -= OnPlayerRunAnimationStart;
+            
         }
     }
 }
